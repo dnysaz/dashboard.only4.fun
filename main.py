@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request, render_template, redirect, session
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = os.urandom(32).hex()
+app.secret_key = os.getenv("SECRET_KEY", os.urandom(32).hex())
 app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=True,
