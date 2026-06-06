@@ -5,6 +5,10 @@ from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = os.urandom(32).hex()
+app.config.update(
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=True,
+)
 
 ADMIN_EMAIL = os.environ["ADMIN_EMAIL"]
 ADMIN_PASS = os.environ["ADMIN_PASS"]
