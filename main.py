@@ -6,12 +6,12 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = os.urandom(32).hex()
 
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "danayasa2@gmail.com")
-ADMIN_PASS = os.getenv("ADMIN_PASS", "Lemarikaca01#")
+ADMIN_EMAIL = os.environ["ADMIN_EMAIL"]
+ADMIN_PASS = os.environ["ADMIN_PASS"]
 
-CF_EMAIL = os.getenv("CF_EMAIL", "danayasa2@gmail.com")
-CF_KEY = os.getenv("CF_KEY", "9c9ef4a55694e7bc7f50996c5255240e18736")
-CF_ZONE_ID = os.getenv("CF_ZONE_ID", "b25b5fb1208c8609304daa8e05c13dbd")
+CF_EMAIL = os.environ["CF_EMAIL"]
+CF_KEY = os.environ["CF_KEY"]
+CF_ZONE_ID = os.environ["CF_ZONE_ID"]
 CF_BASE = "https://api.cloudflare.com/client/v4"
 
 HEADERS = {
