@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — DNS Panel</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;display:flex;justify-content:center;align-items:center;min-height:100vh}
+  .card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:2rem;width:360px}
+  h1{font-size:1.25rem;margin-bottom:.25rem;color:#f0f6fc}
+  .subtitle{color:#8b949e;font-size:.85rem;margin-bottom:1.5rem}
+  .form-group{margin-bottom:1rem}
+  .form-group label{display:block;font-size:.8rem;color:#8b949e;margin-bottom:.3rem}
+  .form-group input{width:100%;padding:.6rem .75rem;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.9rem}
+  .form-group input:focus{outline:none;border-color:#58a6ff}
+  .btn{width:100%;padding:.6rem;background:#238636;color:#fff;border:none;border-radius:6px;font-size:.9rem;cursor:pointer;font-weight:500}
+  .btn:hover{background:#2ea043}
+  .error{background:#da363322;border:1px solid #da363344;color:#f85149;padding:.5rem .75rem;border-radius:6px;font-size:.85rem;margin-bottom:1rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>DNS Panel</h1>
+  <p class="subtitle">only4.fun — Cloudflare Manager</p>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="POST">
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" value="danayasa2@gmail.com" required>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="********" required>
+    </div>
+    <button type="submit" class="btn">Login</button>
+  </form>
+</div>
+</body>
+</html>

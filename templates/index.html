@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNS Panel - only4.fun</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;padding:2rem}
+  .container{max-width:1000px;margin:0 auto}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem}
+  .header h1{font-size:1.5rem;color:#f0f6fc}
+  .header-right{display:flex;align-items:center;gap:1rem}
+  .header-right span{color:#8b949e;font-size:.85rem}
+  .btn-logout{padding:.4rem 1rem;background:#21262d;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.85rem;text-decoration:none}
+  .btn-logout:hover{background:#30363d}
+  .subtitle{color:#8b949e;font-size:.9rem;margin-bottom:2rem}
+  .card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
+  .card h2{font-size:1.1rem;margin-bottom:1rem;color:#f0f6fc}
+  .form-row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:end}
+  .form-group{flex:1;min-width:120px}
+  .form-group label{display:block;font-size:.8rem;color:#8b949e;margin-bottom:.3rem}
+  .form-group input,.form-group select{width:100%;padding:.5rem .75rem;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.9rem}
+  .form-group input:focus,.form-group select:focus{outline:none;border-color:#58a6ff}
+  .btn{padding:.5rem 1.25rem;border:none;border-radius:6px;cursor:pointer;font-size:.9rem;font-weight:500}
+  .btn-primary{background:#238636;color:#fff}
+  .btn-primary:hover{background:#2ea043}
+  .btn-danger{background:#da3633;color:#fff;padding:.3rem .6rem;font-size:.8rem}
+  .btn-danger:hover{background:#f85149}
+  .btn-sm{padding:.3rem .6rem;font-size:.8rem;background:#21262d;color:#c9d1d9;border:1px solid #30363d}
+  .btn-sm:hover{background:#30363d}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:.6rem .5rem;border-bottom:1px solid #21262d;font-size:.9rem}
+  th{color:#8b949e;font-weight:500;font-size:.8rem;text-transform:uppercase}
+  td.actions{white-space:nowrap}
+  .badge{display:inline-block;padding:.15rem .5rem;border-radius:999px;font-size:.75rem;font-weight:500}
+  .badge-proxied{background:#1f6feb22;color:#58a6ff;border:1px solid #1f6feb44}
+  .badge-dns{background:#21262d;color:#8b949e;border:1px solid #30363d}
+  .toast{position:fixed;bottom:2rem;right:2rem;padding:.75rem 1.25rem;border-radius:8px;color:#fff;font-size:.9rem;display:none;z-index:999}
+  .toast.success{background:#238636}
+  .toast.error{background:#da3633}
+  .loading{text-align:center;padding:2rem;color:#8b949e}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;justify-content:center;align-items:center}
+  .modal-overlay.active{display:flex}
+  .modal{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:1.5rem;width:90%;max-width:500px}
+  .modal h3{margin-bottom:1rem}
+  .modal .form-group{margin-bottom:.75rem}
+  .inline-flex{display:flex;gap:.4rem;align-items:center}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>only4.fun — DNS Panel</h1>
+    <div class="header-right">
+      <span>admin</span>
+      <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+  </div>
+  <p class="subtitle">Cloudflare DNS Manager</p>
+
+  <div class="card">
+    <h2>+ Tambah Record</h2>
+    <form id="addForm" class="form-row">
+      <div class="form-group" style="flex:0 0 100px">
+        <label>Type</label>
+        <select id="type"><option value="A">A</option><option value="CNAME">CNAME</option></select>
+      </div>
+      <div class="form-group">
+        <label>Name (subdomain)</label>
+        <input id="name" placeholder="contoh: api" required>
+      </div>
+      <div class="form-group" style="flex:1.5">
+        <label>Target</label>
+        <input id="content" placeholder="31.97.221.213 atau domain.vercel.app" required>
+      </div>
+      <div class="form-group" style="flex:0 0 80px">
+        <label>Proxy</label>
+        <select id="proxied"><option value="true">On</option><option value="false">Off</option></select>
+      </div>
+      <button type="submit" class="btn btn-primary" style="height:fit-content">Tambah</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>DNS Records</h2>
+    <div id="recordsList"><div class="loading">Loading...</div></div>
+  </div>
+</div>
+
+<div id="editModal" class="modal-overlay">
+  <div class="modal">
+    <h3>Edit Record</h3>
+    <form id="editForm">
+      <div class="form-group">
+        <label>Type</label>
+        <select id="edit_type"><option value="A">A</option><option value="CNAME">CNAME</option></select>
+      </div>
+      <div class="form-group"><label>Name</label><input id="edit_name" required></div>
+      <div class="form-group"><label>Target</label><input id="edit_content" required></div>
+      <div class="form-group">
+        <label>Proxy</label>
+        <select id="edit_proxied"><option value="true">On</option><option value="false">Off</option></select>
+      </div>
+      <div class="inline-flex">
+        <button type="submit" class="btn btn-primary">Simpan</button>
+        <button type="button" class="btn btn-sm" onclick="closeEdit()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+let editingId = null;
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type || 'success');
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+async function loadRecords() {
+  const el = document.getElementById('recordsList');
+  el.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const r = await fetch('/api/records');
+    const d = await r.json();
+    if (!d.success) throw new Error(d.errors?.[0]?.message || 'Gagal load');
+    renderRecords(d.result);
+  } catch(e) {
+    el.innerHTML = '<div class="loading" style="color:#da3633">Error: ' + e.message + '</div>';
+  }
+}
+
+function renderRecords(records) {
+  const el = document.getElementById('recordsList');
+  if (!records.length) {
+    el.innerHTML = '<div class="loading">No records</div>';
+    return;
+  }
+  const rows = records.map(r => {
+    const dn = r.name === 'only4.fun' ? '@' : r.name.replace('.only4.fun', '');
+    const proxyBadge = r.proxied ? '<span class="badge badge-proxied">Proxied</span>' : '<span class="badge badge-dns">DNS only</span>';
+    return '<tr><td><strong>' + r.type + '</strong></td><td>' + dn + '</td><td style="font-family:monospace;font-size:.85rem">' + r.content + '</td><td>' + proxyBadge + '</td><td class="actions">' +
+      '<button class="btn btn-sm" onclick="editRecord(\'' + r.id + '\',\'' + r.type + '\',\'' + dn.replace(/'/g,"\\'") + '\',\'' + r.content.replace(/'/g,"\\'") + '\',' + r.proxied + ')">Edit</button> ' +
+      '<button class="btn btn-danger" onclick="deleteRecord(\'' + r.id + '\')">Hapus</button></td></tr>';
+  }).join('');
+  el.innerHTML = '<table><thead><tr><th>Type</th><th>Name</th><th>Target</th><th>Proxy</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+function openEdit(id, type, name, content, proxied) {
+  editingId = id;
+  document.getElementById('edit_type').value = type;
+  document.getElementById('edit_name').value = name;
+  document.getElementById('edit_content').value = content;
+  document.getElementById('edit_proxied').value = String(proxied);
+  document.getElementById('editModal').classList.add('active');
+}
+
+function closeEdit() {
+  editingId = null;
+  document.getElementById('editModal').classList.remove('active');
+}
+
+function editRecord(id, type, name, content, proxied) {
+  openEdit(id, type, name, content, proxied);
+}
+
+document.getElementById('editForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const type = document.getElementById('edit_type').value;
+  const name = document.getElementById('edit_name').value;
+  const content = document.getElementById('edit_content').value;
+  const proxied = document.getElementById('edit_proxied').value === 'true';
+  const fullName = name === '@' ? 'only4.fun' : name + '.only4.fun';
+  try {
+    const r = await fetch('/api/records/' + editingId, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({type, name: fullName, content, proxied})
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.errors?.[0]?.message || 'Gagal update');
+    showToast('Record updated');
+    closeEdit();
+    loadRecords();
+  } catch(e) { showToast(e.message, 'error'); }
+});
+
+async function deleteRecord(id) {
+  if (!confirm('Hapus record ini?')) return;
+  try {
+    const r = await fetch('/api/records/' + id, {method: 'DELETE'});
+    const d = await r.json();
+    if (!d.success) throw new Error(d.errors?.[0]?.message || 'Gagal hapus');
+    showToast('Record dihapus');
+    loadRecords();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+document.getElementById('addForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const type = document.getElementById('type').value;
+  let name = document.getElementById('name').value.trim();
+  const content = document.getElementById('content').value.trim();
+  const proxied = document.getElementById('proxied').value === 'true';
+  if (!name || !content) { showToast('Isi name & target', 'error'); return; }
+  const fullName = name === '@' ? 'only4.fun' : name + '.only4.fun';
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const r = await fetch('/api/records', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({type, name: fullName, content, proxied})
+    });
+    const d = await r.json();
+    if (!d.success) throw new Error(d.errors?.[0]?.message || 'Gagal tambah');
+    showToast('Record ditambahkan');
+    document.getElementById('addForm').reset();
+    loadRecords();
+  } catch(e) { showToast(e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Tambah';
+});
+
+loadRecords();
+</script>
+</body>
+</html>
