@@ -13,16 +13,18 @@ app.config.update(
 ADMIN_EMAIL = os.environ["ADMIN_EMAIL"]
 ADMIN_PASS = os.environ["ADMIN_PASS"]
 
-CF_EMAIL = os.environ["CF_EMAIL"]
-CF_KEY = os.environ["CF_KEY"]
+CF_EMAIL = os.getenv("CF_EMAIL")
+CF_KEY = os.getenv("CF_KEY")
+CF_API_TOKEN = os.getenv("CF_API_TOKEN")
 CF_ZONE_ID = os.environ["CF_ZONE_ID"]
 CF_BASE = "https://api.cloudflare.com/client/v4"
 
-HEADERS = {
-    "X-Auth-Email": CF_EMAIL,
-    "X-Auth-Key": CF_KEY,
-    "Content-Type": "application/json",
-}
+HEADERS = {"Content-Type": "application/json"}
+if CF_API_TOKEN:
+    HEADERS["Authorization"] = f"Bearer {CF_API_TOKEN}"
+else:
+    HEADERS["X-Auth-Email"] = CF_EMAIL
+    HEADERS["X-Auth-Key"] = CF_KEY
 
 def cf_get(path):
     return requests.get(f"{CF_BASE}{path}", headers=HEADERS).json()
